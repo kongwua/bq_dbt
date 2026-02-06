@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "interval_minutes": 60,
+  "run_on_start": true,
+  "dbt_project_dir": "d:/project/bq_dbt/bq_dbt",
+  "sync_command": "conda run -n data dbt build --select +marts",
+  "log_dir": "d:/project/bq_dbt/bq_dbt/logs",
+  "command_timeout_minutes": 180
+}

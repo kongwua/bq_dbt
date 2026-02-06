@@ -1,0 +1,28 @@
+name: 'bq_dbt'
+version: '1.0.0'
+profile: 'bq_dbt'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+vars:
+  safety_window_hours: 24
+
+models:
+  bq_dbt:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: incremental
+      +incremental_strategy: merge
+      +on_schema_change: sync_all_columns

@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: dwd_customer_email_phone_map
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+
+  - name: dwd_customer_id
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - unique
+
+  - name: dwd_customer_shopify_map
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+      - name: shopify_id
+        tests:
+          - not_null
+
+  - name: dwd_customer
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - unique
+
+  - name: dwd_orders
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+      - name: customer_id
+        tests:
+          - not_null
+      - name: shopify_id
+        tests:
+          - not_null
+
+  - name: dwd_customers_journey
+    columns:
+      - name: shopify_order_id
+        tests:
+          - not_null
+          - unique
+      - name: customer_id
+        tests:
+          - not_null
+      - name: shopify_id
+        tests:
+          - not_null

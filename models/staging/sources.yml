@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: userprofile
+    database: julang-dev-database
+    schema: UserProfile
+    tables:
+      - name: ods_shopify_customers
+      - name: ods_shopify_orders
+      - name: ods_shopify_customer_journey_summary
