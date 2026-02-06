@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import subprocess
+import tempfile
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -161,11 +162,41 @@ def _log_line(prefect_logger: logging.Logger, file_logger: logging.Logger, messa
     file_logger.info(message)
 
 
+def _build_runtime_env(prefect_logger: logging.Logger, file_logger: logging.Logger) -> dict[str, str]:
+    runtime_env = dict(os.environ)
+    keyfile_json = runtime_env.get("DBT_BIGQUERY_KEYFILE_JSON")
+    keyfile_path = runtime_env.get("DBT_BIGQUERY_KEYFILE")
+    if keyfile_path or not keyfile_json:
+        return runtime_env
+
+    try:
+        credentials = json.loads(keyfile_json)
+    except json.JSONDecodeError:
+        _log_line(
+            prefect_logger,
+            file_logger,
+            "DBT_BIGQUERY_KEYFILE_JSON is not valid JSON; using raw value as-is.",
+        )
+        return runtime_env
+
+    if isinstance(credentials, dict):
+        credentials.pop("dataset_id", None)
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as file:
+        json.dump(credentials, file)
+        generated_path = file.name
+
+    runtime_env["DBT_BIGQUERY_KEYFILE"] = generated_path
+    _log_line(prefect_logger, file_logger, f"Generated temporary GCP keyfile at: {generated_path}")
+    return runtime_env
+
+
 @task(name="run-dbt-sync", retries=0)
 def run_sync_once(config: SyncConfig) -> None:
     prefect_logger = get_run_logger()
     file_logger = _build_file_logger(config.log_dir)
     start = time.time()
+    runtime_env = _build_runtime_env(prefect_logger, file_logger)
 
     _log_line(prefect_logger, file_logger, "Starting dbt sync task.")
     _log_line(prefect_logger, file_logger, f"Command: {config.sync_command}")
@@ -181,6 +212,7 @@ def run_sync_once(config: SyncConfig) -> None:
             config.sync_command,
             cwd=config.dbt_project_dir,
             shell=True,
+            env=runtime_env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,

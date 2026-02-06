@@ -3,10 +3,10 @@
   outputs:
     dev:
       type: bigquery
-      method: service-account-json
+      method: service-account
       project: "{{ env_var('DBT_BIGQUERY_PROJECT') }}"
       dataset: "{{ env_var('DBT_BIGQUERY_DATASET') }}"
       threads: 2
-      keyfile_json: "{{ env_var('DBT_BIGQUERY_KEYFILE_JSON') }}"
+      keyfile: "{{ env_var('DBT_BIGQUERY_KEYFILE') }}"
       location: "{{ env_var('DBT_BIGQUERY_LOCATION', 'US') }}"
       priority: interactive
