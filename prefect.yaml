@@ -1,0 +1,35 @@
+﻿prefect-version: 3
+
+pull:
+  - prefect.deployments.steps.git_clone:
+      id: clone-step
+      repository: https://github.com/kongwua/bq_dbt.git
+      branch: main
+  - prefect.deployments.steps.pip_install_requirements:
+      directory: "{{ clone-step.directory }}"
+      requirements_file: requirements-managed.txt
+  - prefect.deployments.steps.set_working_directory:
+      directory: "{{ clone-step.directory }}"
+
+deployments:
+  - name: dbt-sync-hourly
+    entrypoint: local_sync_scheduler.py:dbt_sync_flow
+    parameters:
+      config_path: null
+    schedules:
+      - cron: "0 * * * *"
+        timezone: "Asia/Shanghai"
+    concurrency_limit: 1
+    work_pool:
+      name: cloud-managed-pool
+      job_variables:
+        env:
+          DBT_SYNC_PROJECT_DIR: "."
+          DBT_SYNC_COMMAND: "dbt build --select +marts"
+          DBT_SYNC_TIMEOUT_MINUTES: "180"
+          DBT_SYNC_LOG_DIR: "/tmp/logs"
+          DBT_PROFILES_DIR: "profiles"
+          DBT_BIGQUERY_PROJECT: "{{ prefect.variables.dbt_bigquery_project }}"
+          DBT_BIGQUERY_DATASET: "{{ prefect.variables.dbt_bigquery_dataset }}"
+          DBT_BIGQUERY_LOCATION: "{{ prefect.variables.dbt_bigquery_location }}"
+          DBT_BIGQUERY_KEYFILE_JSON: "{{ prefect.variables.dbt_bigquery_keyfile_json }}"

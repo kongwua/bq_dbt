@@ -84,17 +84,19 @@ def _get_prefect_variable(name: str) -> Optional[str]:
 
 def _resolve_value(
     key: str,
-    env_name: str,
-    variable_name: str,
+    env_names: list[str],
+    variable_names: list[str],
     json_data: dict[str, Any],
     default: Any,
 ) -> Any:
-    variable_value = _get_prefect_variable(variable_name)
-    if variable_value not in (None, ""):
-        return variable_value
-    env_value = os.getenv(env_name)
-    if env_value not in (None, ""):
-        return env_value
+    for variable_name in variable_names:
+        variable_value = _get_prefect_variable(variable_name)
+        if variable_value not in (None, ""):
+            return variable_value
+    for env_name in env_names:
+        env_value = os.getenv(env_name)
+        if env_value not in (None, ""):
+            return env_value
     if key in json_data and json_data[key] not in (None, ""):
         return json_data[key]
     return default
@@ -104,29 +106,29 @@ def load_config(config_path: Optional[str]) -> SyncConfig:
     json_data = _read_json_config(config_path)
     project_dir = _resolve_value(
         key="dbt_project_dir",
-        env_name="DBT_SYNC_PROJECT_DIR",
-        variable_name="DBT_SYNC_PROJECT_DIR",
+        env_names=["DBT_SYNC_PROJECT_DIR", "dbt_sync_project_dir"],
+        variable_names=["dbt_sync_project_dir", "DBT_SYNC_PROJECT_DIR"],
         json_data=json_data,
         default=DEFAULT_PROJECT_DIR,
     )
     command = _resolve_value(
         key="sync_command",
-        env_name="DBT_SYNC_COMMAND",
-        variable_name="DBT_SYNC_COMMAND",
+        env_names=["DBT_SYNC_COMMAND", "dbt_sync_command"],
+        variable_names=["dbt_sync_command", "DBT_SYNC_COMMAND"],
         json_data=json_data,
         default=DEFAULT_SYNC_COMMAND,
     )
     timeout_value = _resolve_value(
         key="command_timeout_minutes",
-        env_name="DBT_SYNC_TIMEOUT_MINUTES",
-        variable_name="DBT_SYNC_TIMEOUT_MINUTES",
+        env_names=["DBT_SYNC_TIMEOUT_MINUTES", "dbt_sync_timeout_minutes"],
+        variable_names=["dbt_sync_timeout_minutes", "DBT_SYNC_TIMEOUT_MINUTES"],
         json_data=json_data,
         default=DEFAULT_TIMEOUT_MINUTES,
     )
     log_dir = _resolve_value(
         key="log_dir",
-        env_name="DBT_SYNC_LOG_DIR",
-        variable_name="DBT_SYNC_LOG_DIR",
+        env_names=["DBT_SYNC_LOG_DIR", "dbt_sync_log_dir"],
+        variable_names=["dbt_sync_log_dir", "DBT_SYNC_LOG_DIR"],
         json_data=json_data,
         default=DEFAULT_LOG_DIR,
     )

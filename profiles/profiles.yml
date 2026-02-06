@@ -1,0 +1,12 @@
+﻿bq_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account-json
+      project: "{{ env_var('DBT_BIGQUERY_PROJECT') }}"
+      dataset: "{{ env_var('DBT_BIGQUERY_DATASET') }}"
+      threads: 2
+      keyfile_json: "{{ env_var('DBT_BIGQUERY_KEYFILE_JSON') }}"
+      location: "{{ env_var('DBT_BIGQUERY_LOCATION', 'US') }}"
+      priority: interactive
